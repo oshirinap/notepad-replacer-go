@@ -9,7 +9,7 @@ NSIS installer that asks for your target editor + args and writes the config for
 | File                        | Purpose                                                              |
 |-----------------------------|-----------------------------------------------------------------------|
 | `main.go`                   | Source for `invis.exe` — the native shim that reads `config.json` and launches the real editor, hidden. |
-| `invis.exe`                 | Compiled shim (see build instructions below). Primary/recommended option. |
+| ~~`invis.exe`~~             | Compiled shim (see build instructions below). Primary/recommended option. |
 | `invis.vbs`                 | Self-contained VBScript fallback shim — same job as `invis.exe`, for cases where an unsigned `.exe` gets blocked (SmartScreen, AV policy, etc). |
 | `NotepadReplacerSetup.nsi`  | NSIS installer script — asks for the editor path/args, writes `config.json`, registers the IFEO key. |
 | `NotepadReplacerSetup.exe`  | Compiled installer (see build instructions below). |
