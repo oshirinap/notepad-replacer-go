@@ -1,0 +1,93 @@
+name: Build invis.exe and installer
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'main.go'
+      - 'invis.vbs'
+      - 'NotepadReplacerSetup.nsi'
+      - '.github/workflows/build.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'main.go'
+      - 'invis.vbs'
+      - 'NotepadReplacerSetup.nsi'
+  release:
+    types: [ published ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write  # needed only for the release-upload steps
+
+jobs:
+  build-shim:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Build invis.exe
+        run: go build -ldflags="-s -w" -o invis.exe main.go
+
+      # Always available as a build artifact, even on pushes/PRs that
+      # aren't a release -- handy for testing a branch before tagging.
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: invis.exe
+          path: invis.exe
+
+      # Only runs when this workflow was triggered by publishing a release:
+      # attaches the freshly built invis.exe to that release automatically.
+      - name: Attach to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: invis.exe
+
+  build-installer:
+    runs-on: windows-latest
+    needs: build-shim
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # NSIS was preinstalled on older windows-latest images, but has been
+      # dropped from the newer Windows Server 2025 image -- install it
+      # explicitly so this keeps working regardless of which image
+      # "windows-latest" currently points to.
+      - name: Set up NSIS
+        uses: nsis-dev/setup-nsis@v1
+        with:
+          version: 'latest'
+
+      # Pull the invis.exe just built by build-shim into the repo root,
+      # alongside invis.vbs and the .nsi script (NotepadReplacerSetup.nsi
+      # expects both via `File "invis.exe"` / `File "invis.vbs"`).
+      - name: Download invis.exe artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: invis.exe
+          path: .
+
+      - name: Build installer
+        run: makensis NotepadReplacerSetup.nsi
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NotepadReplacerSetup.exe
+          path: NotepadReplacerSetup.exe
+
+      - name: Attach to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: NotepadReplacerSetup.exe
