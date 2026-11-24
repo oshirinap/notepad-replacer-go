@@ -4,7 +4,8 @@ Redirects `notepad.exe` to a different editor of your choice, system-wide, via t
 Windows `Image File Execution Options` (IFEO) "Debugger" hijack. Comes with an
 NSIS installer that asks for your target editor + args and writes the config for you.
 
-## Files
+## Files [![Build](https://github.com/oshirinap/notepad-replacer-go/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/oshirinap/notepad-replacer-go/actions/workflows/build.yml)
+
 
 | File                        | Purpose                                                              |
 |-----------------------------|-----------------------------------------------------------------------|
