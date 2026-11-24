@@ -6,12 +6,13 @@ NSIS installer that asks for your target editor + args and writes the config for
 
 ## Files [![Build](https://github.com/oshirinap/notepad-replacer-go/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/oshirinap/notepad-replacer-go/actions/workflows/build.yml)
 
-
-| File                        | Purpose                                                              |
+ File                        | Purpose                                                              |
 |-----------------------------|-----------------------------------------------------------------------|
 | `main.go`                   | Source for `invis.exe` — the native shim that reads `config.json` and launches the real editor, hidden. |
+| `invis.exe`                 | Compiled shim (see build instructions below). Primary/recommended option. |
 | `invis.vbs`                 | Self-contained VBScript fallback shim — same job as `invis.exe`, for cases where an unsigned `.exe` gets blocked (SmartScreen, AV policy, etc). |
 | `NotepadReplacerSetup.nsi`  | NSIS installer script — asks for the editor path/args, writes `config.json`, registers the IFEO key. |
+| `NotepadReplacerSetup.exe`  | Compiled installer (see build instructions below). |
 | `config.json`               | Written to `%USERPROFILE%\.notepad-replacer\config.json` by the installer. `{ "exe": "...", "args": [...] }` |
 | `uninstall.exe`             | Removes the registry key + installed files. |
 
