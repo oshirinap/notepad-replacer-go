@@ -150,10 +150,15 @@ func main() {
 	}
 
 	cmd := exec.Command(cfg.Exe, finalArgs...)
-	// Use numeric flags for Windows process creation:
-	// CREATE_NEW_PROCESS_GROUP = 0x00000200, DETACHED_PROCESS = 0x00000008 -> combined 0x00000208
+	// CREATE_NEW_PROCESS_GROUP (0x00000200) insulates the child from our
+	// console signals. CREATE_NO_WINDOW (0x08000000) hides any console
+	// window without the stronger DETACHED_PROCESS semantics -- some
+	// editors' single-instance/"reuse window" IPC handshake on startup
+	// doesn't like being fully detached from a console subsystem, and
+	// would intermittently fail to connect to an existing instance
+	// (launching directly always worked because this didn't apply).
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		CreationFlags: 0x00000208,
+		CreationFlags: 0x00000200 | 0x08000000,
 	}
 	cmd.Stdout = nil
 	cmd.Stderr = nil
@@ -163,8 +168,10 @@ func main() {
 		fmt.Fprintln(os.Stderr, "notepad-replacer shim: failed to start editor:", err)
 		os.Exit(1)
 	}
-	if cmd.Process != nil {
-		_ = cmd.Process.Release()
-	}
-	os.Exit(0)
+	// Don't call cmd.Process.Release() here -- on Windows that can race
+	// the tail end of CreateProcess bookkeeping if we os.Exit()
+	// immediately after, which matched the intermittent "sometimes
+	// nothing happens" symptom. Just let main() return normally; the Go
+	// runtime exits cleanly and the already-started child process is
+	// unaffected either way.
 }
